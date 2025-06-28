@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Form</title>
+    <link rel="stylesheet" href="fstyles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Feedback Form</h1>
+        <form id="feedbackForm" onsubmit="submitFeedbackForm(event)">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="rating">Rating (1-5):</label>
+                <div class="rating-input">
+                    <input type="radio" id="star5" name="rating" value="5" required>
+                    <label for="star5">★</label>
+                    <input type="radio" id="star4" name="rating" value="4">
+                    <label for="star4">★</label>
+                    <input type="radio" id="star3" name="rating" value="3">
+                    <label for="star3">★</label>
+                    <input type="radio" id="star2" name="rating" value="2">
+                    <label for="star2">★</label>
+                    <input type="radio" id="star1" name="rating" value="1">
+                    <label for="star1">★</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="feedback">Your Feedback:</label>
+                <textarea id="feedback" name="feedback" rows="4" required></textarea>
+            </div>
+            <div id="feedbackFormStatus" class="form-status"></div>
+            <button type="submit" class="submit-btn">Submit Feedback</button>
+        </form>
+    </div>
+
+    <script>
+    async function submitFeedbackForm(event) {
+        event.preventDefault();
+        const formStatus = document.getElementById('feedbackFormStatus');
+        const submitButton = event.target.querySelector('button[type="submit"]');
+        
+        try {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+            
+            const rating = document.querySelector('input[name="rating"]:checked')?.value;
+            if (!rating) {
+                throw new Error('Please select a rating');
+            }
+
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                rating: parseInt(rating),
+                feedback: document.getElementById('feedback').value
+            };
+
+            const response = await fetch('http://localhost:8000/api/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                formStatus.textContent = 'Feedback submitted successfully!';
+                formStatus.style.color = 'green';
+                event.target.reset();
+            } else {
+                throw new Error(data.detail || 'Failed to submit feedback');
+            }
+        } catch (error) {
+            formStatus.textContent = error.message;
+            formStatus.style.color = 'red';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit Feedback';
+        }
+    }
+    </script>
+</body>
+</html>
